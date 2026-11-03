@@ -1,0 +1,50 @@
+{
+  "name": "bb-plugin-section-load-more",
+  "version": "0.1.1",
+  "description": "Keeps long sidebar sections short: each section shows its first threads, with a Load more button at the end of the same section.",
+  "license": "MIT",
+  "author": {
+    "name": "siluthfi",
+    "url": "https://github.com/siluthfi"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/siluthfi/bb-plugin-section-load-more.git"
+  },
+  "homepage": "https://github.com/siluthfi/bb-plugin-section-load-more#readme",
+  "type": "module",
+  "keywords": [
+    "bb-plugin",
+    "sidebar",
+    "sections",
+    "threads"
+  ],
+  "engines": {
+    "bb": ">=0.46",
+    "bbPluginSdk": ">=0.6.37"
+  },
+  "bb": {
+    "name": "Section Load More",
+    "description": "Keeps long sidebar sections short: each section shows its first threads, with a Load more button at the end of the same section.",
+    "branding": {
+      "icon": "ListView"
+    },
+    "server": "./server.ts",
+    "app": "./app.tsx",
+    "skills": [
+      "skills"
+    ]
+  },
+  "scripts": {
+    "build": "bb plugin build",
+    "test": "node --test test/controller.test.ts"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@get-bb/plugin-sdk": "0.6.37",
+    "@types/react": "^19.0.0",
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "jsdom": "^26.0.0"
+  }
+}
