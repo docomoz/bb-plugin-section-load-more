@@ -13,7 +13,7 @@ The plugin decorates bb's built-in sidebar instead of replacing it, so pinning, 
 
 ## Settings
 
-Open **Settings → Plugins → Section Load More [Fork]**, or use the CLI.
+Open **Settings → Plugins → Section Load More**, or use the CLI.
 
 ```sh
 bb plugin config section-load-more-fork set visibleThreads 5

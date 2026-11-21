@@ -1,6 +1,6 @@
 {
   "name": "bb-plugin-section-load-more-fork",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Keeps long sidebar sections short: each section shows its first threads, with a Load more button at the end of the same section.",
   "license": "MIT",
   "author": {
@@ -24,7 +24,7 @@
     "bbPluginSdk": ">=0.6.37"
   },
   "bb": {
-    "name": "Section Load More [Fork]",
+    "name": "Section Load More",
     "description": "Keeps long sidebar sections short: each section shows its first threads, with a Load more button at the end of the same section.",
     "branding": {
       "icon": "ListView"

@@ -12,7 +12,7 @@ The open thread stays visible, and child threads stay under their parent.
 ## Install
 
 ```sh
-bb plugin install git:https://github.com/docomoz/bb-plugin-section-load-more.git@v0.1.2
+bb plugin install git:https://github.com/docomoz/bb-plugin-section-load-more.git@v0.1.3
 ```
 
 Requires BB 0.50.1 or later and the built-in thread list. If another version
@@ -20,7 +20,7 @@ of Section Load More is active, disable it before using the fork.
 
 ## Settings
 
-Open **Settings → Plugins → Section Load More [Fork]**, or use the CLI.
+Open **Settings → Plugins → Section Load More**, or use the CLI.
 
 ```sh
 bb plugin config section-load-more-fork set visibleThreads 5

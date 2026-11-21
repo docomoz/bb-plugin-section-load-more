@@ -12,7 +12,7 @@ of the same section. **Show less** returns to N. Threads are never moved,
 archived, or edited. Child threads stay under their parent, and the open
 thread always stays visible.
 
-Open **Settings → Plugins → Section Load More [Fork]**, or use the CLI.
+Open **Settings → Plugins → Section Load More**, or use the CLI.
 
 ```sh
 bb plugin config section-load-more-fork set visibleThreads 5   # threads shown per section
