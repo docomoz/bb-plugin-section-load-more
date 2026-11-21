@@ -21,13 +21,20 @@ const SECTION_SELECTOR = "[data-sidebar-section-id]";
 // Custom sections, plus the built-in loose "Threads" group, which has no
 // section id and is wrapped in a visibility group instead.
 const GROUP_SELECTOR = `${SECTION_SELECTOR}, [data-sidebar-visibility-group="threads"]`;
+// BB renders Pinned with a non-sticky header and its own unwindowed list.
+const PINNED_SELECTOR =
+  '[data-sidebar-sticky-group][data-sidebar-sticky-header="false"] > div > [data-sidebar-sticky-section]';
+const PINNED_ID = "pinned";
 const ITEM_SELECTOR = "[data-sidebar-windowed-item]";
+const THREAD_LINK_SELECTOR = "a[data-sidebar-thread-id]";
 
 export interface LoadMoreOptions {
   /** Top-level threads a section shows before "Load more". */
   visible: number;
   /** Threads each "Load more" click reveals. */
   step: number;
+  /** Initial Pinned limit. Omitted when Pinned should show all threads. */
+  pinnedVisible?: number;
 }
 
 const CSS = `
@@ -45,7 +52,7 @@ const CSS = `
   background: transparent;
   color: var(--muted-foreground);
   font: inherit;
-  font-size: 12px;
+  font-size: 11px;
   line-height: 16px;
   padding: 4px 6px;
   border-radius: calc(var(--radius, 8px) - 2px);
@@ -59,6 +66,9 @@ const CSS = `
 [${FOOTER_ATTR}] button:focus-visible {
   outline: 2px solid var(--sidebar-ring);
   outline-offset: -2px;
+}
+[${FOOTER_ATTR}] .section-load-more-button:not(:hover):not(:focus-visible) {
+  opacity: 0.8;
 }
 `;
 
@@ -78,6 +88,19 @@ export function topLevelItems(section: Element): HTMLElement[] {
     items.push(item);
   }
   return items;
+}
+
+function pinnedItems(container: Element): HTMLElement[] {
+  return Array.from(container.querySelectorAll<HTMLDivElement>(":scope > div")).flatMap((entry) => {
+    if (
+      entry.matches(ITEM_SELECTOR) ||
+      entry.querySelector(`${THREAD_LINK_SELECTOR}:not(${ITEM_SELECTOR} *)`)
+    ) {
+      return [entry];
+    }
+    // Expanded environment groups have their own windowed list of top-level threads.
+    return Array.from(entry.querySelectorAll<HTMLElement>(`:scope > div > ${ITEM_SELECTOR}`));
+  });
 }
 
 function itemHasThread(item: Element, threadId: string): boolean {
@@ -119,6 +142,7 @@ export class SectionLoadMore {
   }
 
   update(options: LoadMoreOptions): void {
+    if (options.pinnedVisible !== this.options.pinnedVisible) this.shown.delete(PINNED_ID);
     this.options = options;
     this.schedule();
   }
@@ -142,7 +166,7 @@ export class SectionLoadMore {
     // Fall back to the whole document if the host renames the scroll root.
     const root =
       this.doc.querySelector(ROOT_SELECTOR) ??
-      (this.doc.querySelector(GROUP_SELECTOR) ? this.doc.body : null);
+      (this.doc.querySelector(`${GROUP_SELECTOR}, ${PINNED_SELECTOR}`) ? this.doc.body : null);
     if (root !== this.root) {
       this.observer?.disconnect();
       this.root = root;
@@ -190,18 +214,39 @@ export class SectionLoadMore {
         section.getAttribute("data-sidebar-visibility-group");
       if (id) this.applySection(section, id, activeId);
     }
+    const { pinnedVisible } = this.options;
+    for (const pinned of this.root.querySelectorAll(PINNED_SELECTOR)) {
+      if (pinnedVisible !== undefined) {
+        this.applySection(pinned, PINNED_ID, activeId, pinnedItems(pinned), pinned, pinnedVisible);
+      } else {
+        for (const item of pinned.querySelectorAll(`[${HIDDEN_ATTR}]`)) {
+          item.removeAttribute(HIDDEN_ATTR);
+        }
+        pinned.querySelector(`[${FOOTER_ATTR}]`)?.remove();
+      }
+    }
   }
 
-  private applySection(section: Element, id: string, activeId: string | null): void {
-    const items = topLevelItems(section);
-    const container = items[0]?.parentElement ?? null;
-    const { visible, step } = this.options;
+  private applySection(
+    section: Element,
+    id: string,
+    activeId: string | null,
+    items = topLevelItems(section),
+    container: Element | null = items[0]?.parentElement ?? null,
+    visible = this.options.visible,
+  ): void {
+    const { step } = this.options;
     const limit = Math.max(visible, this.shown.get(id) ?? visible);
     let hidden = 0;
+    let nextLimit = limit;
     items.forEach((item, index) => {
       const hide =
         index >= limit && !(activeId !== null && itemHasThread(item, activeId));
-      if (hide) hidden += 1;
+      if (hide) {
+        hidden += 1;
+        // The active thread can already be visible past the current limit.
+        if (hidden <= step) nextLimit = index + 1;
+      }
       if (hide !== item.hasAttribute(HIDDEN_ATTR)) {
         if (hide) item.setAttribute(HIDDEN_ATTR, "");
         else item.removeAttribute(HIDDEN_ATTR);
@@ -220,7 +265,7 @@ export class SectionLoadMore {
       footer.setAttribute(FOOTER_ATTR, id);
     }
     if (container.lastElementChild !== footer) container.appendChild(footer);
-    this.renderFooter(footer, id, items, hidden, limit, step, visible);
+    this.renderFooter(footer, id, items, hidden, Math.min(step, hidden), nextLimit, limit > visible);
   }
 
   private renderFooter(
@@ -228,11 +273,11 @@ export class SectionLoadMore {
     id: string,
     items: HTMLElement[],
     hidden: number,
-    limit: number,
-    step: number,
-    visible: number,
+    revealCount: number,
+    nextLimit: number,
+    expanded: boolean,
   ): void {
-    const signature = `${hidden}|${limit > visible}`;
+    const signature = `${hidden}|${revealCount}|${nextLimit}|${expanded}`;
     // Align the labels with the thread titles above them.
     const title = items[0]?.querySelector(".bb-thread-title");
     if (title) {
@@ -244,14 +289,18 @@ export class SectionLoadMore {
     footer.dataset.signature = signature;
     footer.replaceChildren();
     if (hidden > 0) {
-      footer.appendChild(
-        this.button(`Load more (${hidden})`, `Show ${Math.min(step, hidden)} more threads`, () => {
-          this.shown.set(id, limit + step);
+      const loadMore = this.button(
+        `Load more (${hidden})`,
+        `Show ${revealCount} more threads`,
+        () => {
+          this.shown.set(id, nextLimit);
           this.apply();
-        }),
+        },
       );
+      loadMore.className = "section-load-more-button";
+      footer.appendChild(loadMore);
     }
-    if (limit > visible) {
+    if (expanded) {
       footer.appendChild(
         this.button("Show less", "Show fewer threads", () => {
           this.shown.delete(id);

@@ -1,6 +1,6 @@
 {
-  "name": "bb-plugin-section-load-more",
-  "version": "0.1.1",
+  "name": "bb-plugin-section-load-more-fork",
+  "version": "0.1.2",
   "description": "Keeps long sidebar sections short: each section shows its first threads, with a Load more button at the end of the same section.",
   "license": "MIT",
   "author": {
@@ -9,9 +9,9 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/siluthfi/bb-plugin-section-load-more.git"
+    "url": "git+https://github.com/docomoz/bb-plugin-section-load-more.git"
   },
-  "homepage": "https://github.com/siluthfi/bb-plugin-section-load-more#readme",
+  "homepage": "https://github.com/docomoz/bb-plugin-section-load-more#readme",
   "type": "module",
   "keywords": [
     "bb-plugin",
@@ -20,11 +20,11 @@
     "threads"
   ],
   "engines": {
-    "bb": ">=0.46",
+    "bb": ">=0.50.1",
     "bbPluginSdk": ">=0.6.37"
   },
   "bb": {
-    "name": "Section Load More",
+    "name": "Section Load More [Fork]",
     "description": "Keeps long sidebar sections short: each section shows its first threads, with a Load more button at the end of the same section.",
     "branding": {
       "icon": "ListView"

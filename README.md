@@ -1,30 +1,36 @@
-# bb-plugin-section-load-more
+# Section Load More for BB
 
-A [bb](https://getbb.app) plugin that keeps long sidebar sections short.
-Each custom section, and the built-in **Threads** group, shows its newest
-10 top-level threads. The rest wait behind a **Load more (n)** button at the
-end of the same section; **Show less** collapses it again. Several sections
-can stay open without one pushing the others out of view.
+A fork of [Section Load More by siluthfi](https://github.com/siluthfi/bb-plugin-section-load-more)
+for [BB](https://getbb.app). It shows the first 5 top-level threads in **Threads**
+and in each custom section. **Pinned** starts at 8 and has its own adjustable
+limit. **Load more** reveals 5 at a time by default. **Show less** restores the
+initial limit. Both controls use an 11 px font, and **Load more** is muted
+until hovered or focused.
 
-Nothing is archived, moved, or edited. The open thread always stays visible,
-child threads stay under their parent, and Pinned is never capped.
+The open thread stays visible, and child threads stay under their parent.
 
 ## Install
 
 ```sh
-bb plugin install https://github.com/siluthfi/bb-plugin-section-load-more
+bb plugin install git:https://github.com/docomoz/bb-plugin-section-load-more.git@v0.1.2
 ```
 
-Reload the bb window if the button does not appear right away.
+Requires BB 0.50.1 or later and the built-in thread list. If another version
+of Section Load More is active, disable it before using the fork.
 
 ## Settings
 
-Settings → Plugins → Section Load More, or:
+Open **Settings → Plugins → Section Load More [Fork]**, or use the CLI.
 
 ```sh
-bb plugin config section-load-more set visibleThreads 10   # threads shown per section
-bb plugin config section-load-more set loadMoreStep 10     # threads each Load more reveals
+bb plugin config section-load-more-fork set visibleThreads 5
+bb plugin config section-load-more-fork set loadMoreStep 5
+bb plugin config section-load-more-fork set limitPinnedThreads true
+bb plugin config section-load-more-fork set visiblePinnedThreads 8
 ```
+
+Turn off **Limit Pinned threads** to show all pinned threads. Pinned uses
+the shared **Threads per Load more** setting.
 
 How far a section is expanded is kept per window and resets on reload.
 
@@ -39,7 +45,7 @@ the DOM it relies on (`[data-sidebar-section-id]`,
 If a bb update changes that markup, the plugin stops capping and the sidebar
 behaves as it does without it.
 
-Tested with bb 0.46.
+Tested with BB 0.50.1.
 
 ## Development
 

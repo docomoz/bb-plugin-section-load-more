@@ -14,8 +14,11 @@ function positiveInt(value: unknown, fallback: number): number {
 function SidebarLoadMore() {
   const { values } = useSettings();
   const options: LoadMoreOptions = {
-    visible: positiveInt(values?.visibleThreads, 10),
-    step: positiveInt(values?.loadMoreStep, 10),
+    visible: positiveInt(values?.visibleThreads, 5),
+    step: positiveInt(values?.loadMoreStep, 5),
+    pinnedVisible: values?.limitPinnedThreads === false
+      ? undefined
+      : positiveInt(values?.visiblePinnedThreads, 8),
   };
   const controller = useRef<SectionLoadMore | null>(null);
 
@@ -33,7 +36,7 @@ function SidebarLoadMore() {
 
   useEffect(() => {
     controller.current?.update(options);
-  }, [options.visible, options.step]);
+  }, [options.visible, options.step, options.pinnedVisible]);
 
   return null;
 }

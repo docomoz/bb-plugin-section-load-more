@@ -67,6 +67,7 @@ test("caps long sections and leaves short ones alone", () => {
   assert.equal(topLevelItems(a).length, 43, "child threads are not counted");
   assert.equal(hiddenCount(a), 33);
   assert.equal(footer(a)!.textContent, "Load more (33)");
+  assert.equal(win.getComputedStyle(footer(a)!.querySelector("button")!).opacity, "0.8");
   assert.equal(footer(a)!.parentElement!.lastElementChild, footer(a));
   const b = group('[data-sidebar-section-id="b"]');
   assert.equal(hiddenCount(b), 0);
@@ -108,6 +109,92 @@ test("applies new settings", async () => {
   controller.update({ visible: 20, step: 5 });
   await settle();
   assert.equal(hiddenCount(group('[data-sidebar-section-id="a"]')), 24);
+});
+
+test("a step-only settings change immediately applies to existing buttons", async () => {
+  const threads = group('[data-sidebar-visibility-group="threads"]');
+  controller.update({ visible: 5, step: 10 });
+  await settle();
+  assert.equal(hiddenCount(threads), 25);
+
+  controller.update({ visible: 5, step: 5 });
+  await settle();
+  for (const remaining of [20, 15, 10, 5, 0]) {
+    const loadMore = footer(threads)!.querySelector("button")!;
+    assert.equal(loadMore.title, "Show 5 more threads");
+    loadMore.click();
+    assert.equal(hiddenCount(threads), remaining);
+  }
+  assert.equal(footer(threads)!.textContent, "Show less");
+});
+
+test("a thread kept visible does not count toward the next batch", async () => {
+  const section = group('[data-sidebar-section-id="t"]');
+  controller.update({ visible: 5, step: 5 });
+  win.history.replaceState(null, "", "/threads/thr_t13");
+  await settle();
+  assert.equal(hiddenCount(section), 29);
+  for (const remaining of [24, 19, 14, 9, 4, 0]) {
+    const loadMore = footer(section)!.querySelector("button")!;
+    assert.equal(loadMore.title, `Show ${Math.min(5, hiddenCount(section))} more threads`);
+    loadMore.click();
+    assert.equal(hiddenCount(section), remaining);
+  }
+});
+
+test("Pinned uses its own initial limit and the shared step", async () => {
+  const standalone = Array.from({ length: 13 }, (_, i) =>
+    `<div data-sidebar-sticky-group><div data-sidebar-rename-row><a data-sidebar-thread-id="thr_p${i}"></a></div>${
+      i === 0 ? `<div>${row("thr_pchild")}</div>` : ""
+    }</div>`,
+  );
+  const environment = `<div data-sidebar-sticky-group><div data-sidebar-rename-row>Worktree</div><div>
+    ${row("thr_env0")}<div data-sidebar-windowed-item data-sidebar-windowed-nav="thr_env1:proj"></div>
+  </div></div>`;
+  doc.querySelector('[data-sidebar="content"]')!.insertAdjacentHTML("beforeend", `
+    <div data-sidebar-sticky-group data-sidebar-sticky-header="false">
+      <div data-sidebar="group-label">Pinned</div>
+      <div><div data-sidebar-sticky-section>${standalone.slice(0, 6).join("")}${environment}${standalone.slice(6).join("")}</div></div>
+    </div>`);
+  const pinned = group('[data-sidebar-sticky-header="false"] [data-sidebar-sticky-section]');
+  const regularSection = group('[data-sidebar-section-id="a"]');
+  const pinnedHidden = () => pinned.querySelectorAll(`[${HIDDEN_ATTR}]`).length;
+  controller.update({ visible: 5, step: 5 });
+  await settle();
+  assert.equal(pinnedHidden(), 0);
+  assert.equal(footer(pinned), null);
+
+  controller.update({ visible: 5, step: 5, pinnedVisible: 8 });
+  await settle();
+  assert.equal(pinnedHidden(), 7);
+  assert.equal(hiddenCount(regularSection), topLevelItems(regularSection).length - 5);
+  assert.equal(footer(pinned)?.textContent, "Load more (7)");
+  assert.equal(footer(pinned)?.parentElement, pinned);
+  assert.equal(pinned.querySelector('[data-sidebar-thread-id="thr_pchild"]')?.closest(`[${HIDDEN_ATTR}]`), null);
+  footer(pinned)!.querySelector("button")!.click();
+  assert.equal(pinnedHidden(), 2);
+  assert.equal(footer(pinned)?.textContent, "Load more (2)Show less");
+  assert.equal(pinned.querySelector('[data-sidebar-thread-id="thr_env0"]')?.closest(`[${HIDDEN_ATTR}]`), null);
+  footer(pinned)!.querySelectorAll("button")[1].click();
+  assert.equal(pinnedHidden(), 7);
+  footer(pinned)!.querySelector("button")!.click();
+
+  controller.update({ visible: 5, step: 5, pinnedVisible: 6 });
+  await settle();
+  assert.equal(pinnedHidden(), 9);
+
+  controller.update({ visible: 5, step: 5 });
+  await settle();
+  assert.equal(pinnedHidden(), 0);
+  assert.equal(footer(pinned), null);
+
+  controller.update({ visible: 5, step: 2, pinnedVisible: 3 });
+  win.history.replaceState(null, "", "/threads/thr_p12");
+  await settle();
+  assert.equal(pinnedHidden(), 11);
+  assert.equal(pinned.querySelector('[data-sidebar-thread-id="thr_p12"]')?.closest(`[${HIDDEN_ATTR}]`), null);
+  footer(pinned)!.querySelector("button")!.click();
+  assert.equal(pinnedHidden(), 9);
 });
 
 test("stop removes everything it added", () => {

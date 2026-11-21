@@ -12,15 +12,19 @@ of the same section. **Show less** returns to N. Threads are never moved,
 archived, or edited. Child threads stay under their parent, and the open
 thread always stays visible.
 
-Settings (Settings → Plugins → Section Load More, or the CLI):
+Open **Settings → Plugins → Section Load More [Fork]**, or use the CLI.
 
 ```sh
-bb plugin config section-load-more set visibleThreads 10   # threads shown per section
-bb plugin config section-load-more set loadMoreStep 10     # threads each Load more reveals
+bb plugin config section-load-more-fork set visibleThreads 5   # threads shown per section
+bb plugin config section-load-more-fork set loadMoreStep 5     # threads each Load more reveals
+bb plugin config section-load-more-fork set limitPinnedThreads true
+bb plugin config section-load-more-fork set visiblePinnedThreads 8
 ```
 
-The expanded state is per window and resets on reload. Pinned and
-project groups are not capped.
+The expanded state is per window and resets on reload. **Limit Pinned threads**
+is on by default. **Pinned threads shown initially** sets the initial Pinned
+limit independently, with a default of 8. Pinned uses the shared Load more step.
+Project groups are not capped.
 
 It relies on the thread-list DOM (`[data-sidebar-section-id]`,
 `[data-sidebar-windowed-item]`). If a bb update renames those, the plugin
