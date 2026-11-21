@@ -9,6 +9,12 @@ until hovered or focused.
 
 The open thread stays visible, and child threads stay under their parent.
 
+## Screenshots
+
+| Initial limits in Pinned and a custom section | A section after Load more |
+| --- | --- |
+| ![Pinned shows eight threads and Product studio shows five, with a Load more button in each group](docs/screenshots/capped-sections.png) | ![Product studio shows all nine threads with a Show less button](docs/screenshots/expanded-section.png) |
+
 ## Install
 
 ```sh

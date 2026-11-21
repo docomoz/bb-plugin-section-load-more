@@ -27,3 +27,5 @@ How far you expanded a section is kept per window and resets when the window rel
 ## Requirements
 
 No account or external service. The plugin reads the sidebar's markup; if a bb update changes it, the plugin stops capping and the sidebar works as it does without the plugin.
+
+Based on [Section Load More by siluthfi](https://github.com/siluthfi/bb-plugin-section-load-more).
