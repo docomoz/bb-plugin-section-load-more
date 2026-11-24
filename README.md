@@ -1,5 +1,7 @@
 # Section Load More for BB
 
+New development continues in [Sidebar Folders](https://github.com/docomoz/bb-plugin-project-section-folder), which includes the same Load more and Show less controls. This repository and its published releases remain available.
+
 A fork of [Section Load More by siluthfi](https://github.com/siluthfi/bb-plugin-section-load-more)
 for [BB](https://getbb.app). It shows the first 5 top-level threads in **Threads**
 and in each custom section. **Pinned** starts at 8 and has its own adjustable
